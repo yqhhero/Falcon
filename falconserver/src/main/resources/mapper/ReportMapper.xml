@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yqh.falcon.mapper.ReportMapper">
+
+   <insert id="insertReport" parameterType="report">
+       insert t_report(article_id,user_id,reason,create_time)
+       values (#{articleId},#{user.id},#{reason},#{createTime})
+   </insert>
+
+    <update id="updateHandleTime" parameterType="report">
+        update t_report set handle_time = #{handleTime}
+        where id = #{id};
+    </update>
+    
+    <select id="findReportByHandleTimeIsNull" resultType="report">
+        select * from t_report
+        where handle_time is null;
+    </select>
+</mapper>

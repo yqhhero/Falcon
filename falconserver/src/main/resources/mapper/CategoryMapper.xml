@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yqh.falcon.mapper.CategoryMapper">
+
+    <select id="findAllCategory" resultType="com.yqh.falcon.model.Category">
+        select * from t_category where 1=1;
+    </select>
+
+   <insert id="insertCategory" parameterType="Category">
+       insert t_category(`name`)
+       values (#{name})
+   </insert>
+
+    <update id="updateCategory" parameterType="Category">
+        update t_category set `name` = #{name} where id = #{id}
+    </update>
+</mapper>

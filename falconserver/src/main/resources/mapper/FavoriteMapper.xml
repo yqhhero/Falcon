@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yqh.falcon.mapper.FavoriteMapper">
+    
+   <insert id="insertFavorite" parameterType="com.yqh.falcon.model.Favorite">
+       insert t_favorites(`name`,user_id,description,secret)
+       values (#{name},#{user.id},#{description},#{secret})
+   </insert>
+
+    <select id="findFavoriteListByUserId" resultType="com.yqh.falcon.model.Favorite">
+        select * from t_favorites
+        where user_id = #{userId}
+    </select>
+
+    <select id="findFavoritesByFIdAndUId" resultType="com.yqh.falcon.model.Favorite">
+        select * from t_favorites
+        where user_id = #{userId} and id = #{favoritesId}
+    </select>
+    
+    <update id="updateFavorite" parameterType="com.yqh.falcon.model.Favorite">
+        update t_favorites set `name` = #{name},description = #{description},secret = #{secret}
+        where id = #{id} and user_id = #{user.id}
+    </update>
+    
+    <delete id="deleteFavoritesByIdAndUserId">
+        delete from t_favorites  where id =#{favoritesId} and user_id = #{userId}
+    </delete>
+
+
+    
+    <insert id="insertFavoritesArticle">
+        insert t_favorites_articles(favorites_id,article_id)
+        values (#{favoritesId},#{articleId})
+    </insert>
+
+    <select id="findFavoritesArticleByFIdAndAId" resultType="Long">
+        select id from t_favorites_articles
+        where favorites_id = #{favoritesId} and article_id = #{articleId}
+    </select>
+
+    <delete id="deleteFavoritesArticle">
+        delete from t_favorites_articles where favorites_id = #{favoritesId} and article_id = #{articleId}
+    </delete>
+
+    <delete id="deleteFavoritesAllArticle">
+        delete from t_favorites_articles where favorites_id = #{favoritesId}
+    </delete>
+
+    <delete id="deleteFavoritesArticleByAId">
+        delete from t_favorites_articles where article_id = #{articleId}
+    </delete>
+
+    <select id="findFavoritesArticleByUIdAndAId" resultType="long">
+        select favorites_id from t_favorites_articles
+        where article_id = #{articleId} and favorites_id in (select id from t_favorites where user_id = #{userId} )
+    </select>
+
+    <select id="findFavoritesArticleIdList" resultType="long">
+        select article_id from t_favorites_articles where favorites_id = #{favoritesId}
+    </select>
+
+</mapper>

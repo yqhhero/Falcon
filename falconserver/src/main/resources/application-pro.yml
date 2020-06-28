@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mymysql:3306/falcondb?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: yqh123
+  jackson:
+    time-zone: GMT+8
+  data:
+    elasticsearch:
+      cluster-nodes: es_652:9300
+      cluster-name: docker-cluster
+
+logging:
+  level:
+    root: warn
+    com.yqh: info
+  file: log/blog-pro.log
+
+server:
+  port: 8082

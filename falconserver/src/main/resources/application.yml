@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    active: pro
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath*:/mapper/*.xml
+  type-aliases-package: com.yqh.falcon.model
+
+#pagehelper分页插件配置
+pagehelper:
+  helperDialect: mysql

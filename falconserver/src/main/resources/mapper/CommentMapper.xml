@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yqh.falcon.mapper.CommentMapper">
+
+    <select id="findByArticleIdAndParentIdNull"  resultMap="CommentMap">
+        select c.*,u.nickname,u.avatar  from t_comment as c,t_user as u where article_id = #{articleId} and c.user_id = u.id  and parent_comment_id is null
+    </select>
+
+    <!--<select id="findByArticleIdAndParentIdNotNull" resultMap="CommentMap">-->
+        <!--select a.*,b.id as bid,b.content as bcontent from t_comment as a inner join t_comment as b on a.parent_comment_id = b.id-->
+        <!--where a.article_id = #{articleId} and a.parent_comment_id is not null-->
+    <!--</select>-->
+
+    <select id="findByArticleIdAndParentIdNotNull" resultMap="CommentMap">
+        select a.*,u.nickname,u.avatar,b.content as pcontent,b.id as pid,pu.nickname as punickname  from t_user as u,t_user as pu,t_comment as a inner join t_comment as b on a.parent_comment_id = b.id
+        where a.article_id = #{articleId} and b.user_id = pu.id and a.user_id = u.id and a.parent_comment_id is not null
+    </select>
+
+   <insert id="insertComment" parameterType="Comment">
+       insert t_comment(content,create_time,article_id,user_id<if test="parentComment != null and parentComment.id != null">,parent_comment_id</if>)
+       values (#{content},#{createTime},#{articleId},#{user.id}<if test="parentComment != null and parentComment.id != null">,#{parentComment.id}</if>)
+   </insert>
+
+    <resultMap id="CommentMap" type="com.yqh.falcon.model.Comment">
+        <id property="id" column="id" />
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="articleId" column="article_id"/>
+        <association property="user" javaType="com.yqh.falcon.model.User">
+            <id property="id" column="userId"/>
+            <result property="nickname" column="nickname"/>
+            <result property="avatar" column="avatar"/>
+        </association>
+        <association property="parentComment" javaType="com.yqh.falcon.model.Comment">
+            <id property="id" column="pid" />
+            <result property="content" column="pcontent"/>
+            <association property="user" javaType="com.yqh.falcon.model.User">
+                <id property="id" column="puid"></id>
+                <result property="nickname" column="punickname" />
+            </association>
+        </association>
+    </resultMap>
+</mapper>

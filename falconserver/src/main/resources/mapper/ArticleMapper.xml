@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yqh.falcon.mapper.ArticleMapper">
+
+    <sql id="oneArticle">
+        id,title,content,status,edit_time,publish_time,likes,views,comments,collects,user_id as userId
+    </sql>
+
+    <sql id="userArticle">
+        a.*,a.user_id as userId
+    </sql>
+
+    <sql id="articleList">
+        a.id,title,publish_time,likes,views,comments,collects,u.id as userId,u.nickname,u.avatar
+    </sql>
+
+    <sql id="ArticleAndTag">
+         a.id,title,publish_time,likes,views,comments,collects,u.id as userId,u.nickname,u.avatar,ats.tags_id as tagId,t.name as tag_name
+    </sql>
+
+    <select id="findArticleById" resultMap="ArticleMap">
+        select <include refid="oneArticle"></include>from t_article where id = #{articleId}
+    </select>
+
+    <select id="findArticleByIdList" resultMap="ArticleMap">
+        select
+        <include refid="articleList"></include>
+        from t_article as a left join t_user as u on a.user_id = u.id
+        where a.id in
+        <foreach collection="list" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findArticleByUserId" resultType="com.yqh.falcon.model.Article">
+        select * from t_article where user_id = #{userId}
+    </select>
+
+
+    <select id="findByCategoryIdPopular" resultMap="ArticleMap">
+        select
+        <include refid="articleList"></include>
+        from t_article as a left join t_user as u on a.user_id = u.id where
+        <if test="categoryId != null">
+            category_id = #{categoryId} and
+        </if>
+        status = 1 and publish_time > #{limitTime} order by views desc
+    </select>
+
+    <select id="findArticleByUIdAndAId" resultMap="ArticleMap">
+        select <include refid="userArticle"></include>
+        from t_article as a left join t_user as u on a.user_id = u.id
+        where  a.id = #{articleId} and a.user_id = #{userId}
+    </select>
+
+    <select id="findByCategoryIdIsNew" resultMap="ArticleMap">
+        select
+        <include refid="articleList"></include>
+        from t_article as a left join t_user as u on a.user_id = u.id where
+        <if test="categoryId != null">
+            category_id = #{categoryId} and
+        </if>
+        status = 1 order by publish_time desc
+    </select>
+
+    <select id="findArticleTags" resultType="com.yqh.falcon.model.Tag">
+        select t.* from t_tag t,t_article_tags ats
+        where t.id = ats.tags_id and ats.articles_id = #{articleId}
+    </select>
+
+    <!--测试-->
+    <select id="findtest" resultMap="ArticleMap">
+        select a.*,ats.tags_id as tagId
+      from t_article as a, t_article_tags as ats
+      where status = 1 and a.id = ats.articles_id group by a.id order by publish_time desc
+    </select>
+
+
+    <select id="findArticleStatusById" resultType="Integer">
+        select status from t_article where article_id = #{articleId}
+    </select>
+
+    <insert id="insertArticle" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="Article">
+        insert t_article(title,content,category_id,user_id,status,edit_time<if test="publishTime != null">
+        ,publish_time</if>)
+        values (#{title},#{content},#{category.id},#{user.id},#{status},#{editTime}<if
+            test="publishTime != null">,#{publishTime}</if>)
+    </insert>
+
+    <update id="updateArticle" parameterType="Article">
+        UPDATE t_article SET title = #{title},content = #{content},category_id =
+        #{category.id},status = #{status},edit_time = #{editTime}
+        <trim prefix=",">
+            <if test="publishTime != null ">
+                publish_time = #{publishTime}
+            </if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateArticleViews">
+        update t_article set views = views+1
+        where id = #{articleId}
+    </update>
+
+    <select id="findArticleLikeByUIdAndAId" resultType="Long">
+        select id from t_article_likes
+        where user_id = #{userId} and article_id = #{articleId}
+    </select>
+
+    <select id="findUserLikeAIdsByUId" resultType="long">
+        select article_id from t_article_likes where user_id = #{userId}
+    </select>
+
+    <update id="updateArticleLikesByAdd">
+        update t_article set likes = likes+1
+        where id = #{articleId}
+    </update>
+
+    <insert id="insertArticleLikes">
+        insert t_article_likes(user_id,article_id)
+        values (#{userId},#{articleId})
+    </insert>
+
+    <update id="updateArticleLikesByReduce">
+        update t_article set likes = likes-1
+        where id = #{articleId}
+    </update>
+
+    <delete id="deleteArticleLikesById">
+        delete from t_article_likes
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteArticleLikesByAId">
+        delete from t_article_likes
+        where article_id = #{articleId}
+    </delete>
+
+    <update id="updateArticleCommentsByAdd">
+         update t_article set comments = comments+1
+        where id = #{articleId}
+    </update>
+
+    <update id="updateArticleCollectsByAdd">
+         update t_article set collects = collects+1
+        where id = #{articleId}
+    </update>
+
+    <update id="updateArticleCollectsByReduce">
+         update t_article set collects = collects-1
+        where id = #{articleId}
+    </update>
+
+    <insert id="insertArticleTags">
+        insert t_article_tags(articles_id,tags_id) values
+        <foreach collection="list" index="index" separator="," item="item">
+            (#{item.articleId},#{item.tagId})
+        </foreach>
+    </insert>
+
+    <delete id="deleteArticleTags">
+        delete from t_article_tags where articles_id = #{articleId}
+    </delete>
+
+    <delete id="deleteArticle">
+        delete from t_article where user_id = #{userId} and id = #{articleId}
+    </delete>
+
+
+    <resultMap id="ArticleMap" type="com.yqh.falcon.model.Article">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="status" column="status"/>
+        <result property="publishTime" column="publish_time"/>
+        <result property="editTime" column="edit_time"/>
+        <result property="views" column="views"/>
+        <result property="likes" column="likes"/>
+        <result property="collects" column="collects"/>
+        <result property="comments" column="comments"/>
+        <association property="user" javaType="com.yqh.falcon.model.User">
+            <id property="id" column="userId"/>
+            <result property="nickname" column="nickname"/>
+            <result property="avatar" column="avatar"/>
+        </association>
+        <association property="category" javaType="com.yqh.falcon.model.Category">
+            <id property="id" column="category_id"/>
+            <result property="name" column="category_name"/>
+        </association>
+        <collection property="tags" ofType="com.yqh.falcon.model.Tag">
+            <id property="id" column="tagId"/>
+            <result property="name" column="tag_name"/>
+        </collection>
+    </resultMap>
+
+</mapper>
